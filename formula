@@ -1,0 +1,71 @@
+# DESCRIPTION
+# DESCRIPTION
+
+##########################
+## CHANGE MATRICES FORMATS
+##########################
+
+
+#rm(list=ls(all=TRUE))
+setwd("C:/curso/Cuaderno de laboratorio (micros)/1. datos articulo/matrices.input/")
+
+## cargo la matriz con 1 indiv./1 fila (alelos separados por /t)
+
+datos<-read.csv2("ejemplo.cambio.formato.csv", header=T)
+
+oneRowToN <- function(x, col_info = 6, col_genotipado = 10, ploidia_max = 6 ) { 
+  num_col_set <- col_info + col_genotipado
+  numero_indiv <- nrow(x)
+  no.filas.necesarias <- ploidia_max*numero_indiv
+  
+  output <- data.frame(matrix("", ncol = num_col_set, nrow = ploidia_max),stringsAsFactors=FALSE)
+  output_final <- data.frame(matrix("", ncol = num_col_set, nrow = no.filas.necesarias),stringsAsFactors=FALSE)
+  
+  k=numero_indiv
+  
+  
+  ## establezco las columnas de inicio y fin de cada marcador
+  
+  lim_ini_col <- seq(from=col_info+1,to=ncol(x),by=ploidia_max)
+  lim_ini_col ## comprobar que coincida con los grupos de columnas que quiero trasponer
+  lim_fin_col <- lim_ini_col+(ploidia_max-1)
+  lim_fin_col ## idem
+  
+  ## checkpoint
+  if(length(lim_fin_col)==col_genotipado){
+    
+    print("PARECE QUE TODO VA BIEN ;)")
+    print("COMPRUEBA TU DIRECTORIO DE TRABAJO")
+    
+  } else {
+    
+    print("EN ALGUN PUNTO LA CAGASTE, NO TE GUARDO NADA")
+  }
+  
+  ## ¡TRUE! SI ES FALSE ALGO ESTÁ MAL
+  
+  ## Y AHORA YA SI, DALEEEEE
+  
+  for (i in 1:k) {
+    filaN<-x[i,]
+    
+    for (j in 1:col_info) {
+      output[,j]<-rep(filaN[,j],ploidia_max)
+    }
+    
+    for (z in 1:col_genotipado) {
+      output[, col_info+z]<-t(filaN[,lim_ini_col[z]:lim_fin_col[z]])
+    }
+    
+    output_final[((i*ploidia_max)-(ploidia_max-1)):(i*ploidia_max), 1:num_col_set]<-output
+  }
+  
+  names(output_final)[1:col_info]<- names(x)[1:col_info]
+  write.table(output_final, file="outputCheck.csv", row.names=FALSE, quote=FALSE, sep=";")
+  return("¡¡las columnas de informacion pueden haber cambiado!!")
+}
+
+datos
+getwd()
+oneRowToN(datos)
+

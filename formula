@@ -1,71 +1,74 @@
-# DESCRIPTION
-# DESCRIPTION
+# This formula changes the input matrix [1 ind/ 1row] to a matrix [1 ind./ n rows] where n is the maximum ploidy of the set
+# in the output matrix each column represents one locus (input for STRUCTURE and other softwares)
 
 ##########################
 ## CHANGE MATRICES FORMATS
 ##########################
 
+path_to_my_matrix <- "..."
+setwd(path_to_my_matrix)
 
-#rm(list=ls(all=TRUE))
-setwd("C:/curso/Cuaderno de laboratorio (micros)/1. datos articulo/matrices.input/")
+## load the matrix 1 indiv./1 row (alleles separated by /t)
 
-## cargo la matriz con 1 indiv./1 fila (alelos separados por /t)
+data <- read.csv2("example.data.csv", header=T)
 
-datos<-read.csv2("ejemplo.cambio.formato.csv", header=T)
+## col_inf: number of columns of information about the sample (=6 in the example)
+## col_genotyping: number of alleles (columns which represents genotyping; =12 in the example)
+## max_ploidy: maximum ploidy of the dataset (=6 in the example)
 
-oneRowToN <- function(x, col_info = 6, col_genotipado = 10, ploidia_max = 6 ) { 
-  num_col_set <- col_info + col_genotipado
-  numero_indiv <- nrow(x)
-  no.filas.necesarias <- ploidia_max*numero_indiv
+oneRowToN <- function(x, col_inf, col_genotyping, max_ploidy) { 
+  num_col_set <- col_inf + col_genotyping
+  num_indiv <- nrow(x)
+  num.rows.needed <- max_ploidy*num_indiv
   
-  output <- data.frame(matrix("", ncol = num_col_set, nrow = ploidia_max),stringsAsFactors=FALSE)
-  output_final <- data.frame(matrix("", ncol = num_col_set, nrow = no.filas.necesarias),stringsAsFactors=FALSE)
+  output <- data.frame(matrix("", ncol = num_col_set, nrow = max_ploidy),stringsAsFactors=FALSE)
+  output_final <- data.frame(matrix("", ncol = num_col_set, nrow = num.rows.needed),stringsAsFactors=FALSE)
   
-  k=numero_indiv
+  k=num_indiv
   
   
-  ## establezco las columnas de inicio y fin de cada marcador
+  ## establish the start/end columns for each marker (locus)
   
-  lim_ini_col <- seq(from=col_info+1,to=ncol(x),by=ploidia_max)
-  lim_ini_col ## comprobar que coincida con los grupos de columnas que quiero trasponer
-  lim_fin_col <- lim_ini_col+(ploidia_max-1)
-  lim_fin_col ## idem
+  lim_ini_col <- seq(from=col_inf+1,to=ncol(x),by=max_ploidy)
+  lim_ini_col
+  lim_fin_col <- lim_ini_col+(max_ploidy-1)
+  lim_fin_col 
   
   ## checkpoint
-  if(length(lim_fin_col)==col_genotipado){
+  if(length(lim_fin_col)==col_genotyping){
     
-    print("PARECE QUE TODO VA BIEN ;)")
-    print("COMPRUEBA TU DIRECTORIO DE TRABAJO")
+    print("IT SEEMS IT IS WORKING ;)")
+    print("CHECK YOUR WORKING DIRECTORY")
     
   } else {
     
-    print("EN ALGUN PUNTO LA CAGASTE, NO TE GUARDO NADA")
+    print("SOMETHINNG IS WRONG")
   }
   
-  ## ¡TRUE! SI ES FALSE ALGO ESTÁ MAL
+  ## ¡TRUE! IF THE MESSAGE IS "FALSE", SOMETHING IS WRONG
   
-  ## Y AHORA YA SI, DALEEEEE
+  ## AND NOW IT STARTS
   
   for (i in 1:k) {
     filaN<-x[i,]
     
-    for (j in 1:col_info) {
-      output[,j]<-rep(filaN[,j],ploidia_max)
+    for (j in 1:col_inf) {
+      output[,j]<-rep(filaN[,j],max_ploidy)
     }
     
-    for (z in 1:col_genotipado) {
-      output[, col_info+z]<-t(filaN[,lim_ini_col[z]:lim_fin_col[z]])
+    for (z in 1:col_genotyping) {
+      output[, col_inf+z]<-t(filaN[,lim_ini_col[z]:lim_fin_col[z]])
     }
     
-    output_final[((i*ploidia_max)-(ploidia_max-1)):(i*ploidia_max), 1:num_col_set]<-output
+    output_final[((i*max_ploydy)-(max_ploydy-1)):(i*max_ploydy), 1:num_col_set]<-output
   }
   
-  names(output_final)[1:col_info]<- names(x)[1:col_info]
+  names(output_final)[1:col_info]<- names(x)[1:col_inf]
   write.table(output_final, file="outputCheck.csv", row.names=FALSE, quote=FALSE, sep=";")
-  return("¡¡las columnas de informacion pueden haber cambiado!!")
+  return("¡¡information columns may have changed!!")
 }
 
-datos
+data
 getwd()
-oneRowToN(datos)
+oneRowToN(data)
 
